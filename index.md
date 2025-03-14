@@ -1,6 +1,6 @@
 ## Welcome to Will's website
 
-This is a test website.
+This is a personal website and only being used for testing purpose.
 
 ### Test for image and hyperlink
 
@@ -10,4 +10,4 @@ Click [here](https://www.yahoo.com) to go to Yahoo.
 
 ### Contact
 
-Contact me through the online form under Contact Page.
+I won't leave my phone number here. Contact me through the online form under Contact Page if you wish.
