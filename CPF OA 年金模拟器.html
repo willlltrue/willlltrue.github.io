@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CPF OA 年金模拟器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root {
+    --ink: #142B3C;
+    --ink-soft: #4A5D6B;
+    --paper: #EEF2EF;
+    --surface: #FFFFFF;
+    --hero-bg: #142B3C;
+    --hero-ink: #F4F1E8;
+    --hero-ink-soft: #A9BAC4;
+    --gold: #B4841F;
+    --gold-strong: #96700F;
+    --teal: #2E6E62;
+    --teal-soft: #DCE8E4;
+    --line: #D7DEDA;
+    --line-strong: #B9C3BD;
+    --danger: #A3432B;
+    --shadow: 0 1px 2px rgba(20,43,60,0.06), 0 8px 24px rgba(20,43,60,0.07);
+    --radius-card: 18px;
+    --radius-input: 10px;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #EDEFEA;
+      --ink-soft: #A9B7BC;
+      --paper: #0D1620;
+      --surface: #16222F;
+      --hero-bg: #0A141E;
+      --hero-ink: #F4F1E8;
+      --hero-ink-soft: #93A6B1;
+      --gold: #D9A63F;
+      --gold-strong: #E9BE5F;
+      --teal: #5CA495;
+      --teal-soft: #17332C;
+      --line: #263340;
+      --line-strong: #33424F;
+      --danger: #D6805F;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #EDEFEA;
+    --ink-soft: #A9B7BC;
+    --paper: #0D1620;
+    --surface: #16222F;
+    --hero-bg: #0A141E;
+    --hero-ink: #F4F1E8;
+    --hero-ink-soft: #93A6B1;
+    --gold: #D9A63F;
+    --gold-strong: #E9BE5F;
+    --teal: #5CA495;
+    --teal-soft: #17332C;
+    --line: #263340;
+    --line-strong: #33424F;
+    --danger: #D6805F;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 20px 64px;
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 28px 16px 48px; }
+  }
+
+  /* ---------- Header ---------- */
+  header.page-head {
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    font-size: 13px;
+    color: var(--teal);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-family: "Noto Serif SC", serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 1.25;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  /* ---------- Layout grid ---------- */
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 24px;
+    align-items: stretch;
+  }
+  @media (max-width: 760px) {
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
+    padding: 26px 24px;
+  }
+
+  /* ---------- Inputs ---------- */
+  .field {
+    margin-bottom: 22px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .field-label .unit-hint {
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+  }
+  .amount-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-input);
+    background: var(--paper);
+    overflow: hidden;
+    transition: border-color .15s ease;
+  }
+  .amount-input:focus-within {
+    border-color: var(--teal);
+  }
+  .amount-input .prefix {
+    padding: 0 4px 0 14px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .amount-input input[type="number"] {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 14px 12px 4px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    font-family: inherit;
+    min-width: 0;
+    -moz-appearance: textfield;
+  }
+  .amount-input input[type="number"]::-webkit-outer-spin-button,
+  .amount-input input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .amount-input .suffix {
+    padding: 0 14px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .amount-input input:focus { outline: none; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+    margin-top: 14px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--teal);
+    cursor: pointer;
+    margin-top: -7px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: 3px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--teal);
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
+
+  .rate-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rate-row .amount-input { max-width: 190px; }
+  .rate-row .amount-input input[type="number"] { padding-right: 4px; }
+  .rate-row .amount-input .suffix { padding-left: 0; }
+  .rate-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-top: 10px;
+  }
+
+  /* ---------- Hero result card ---------- */
+  .hero {
+    background: var(--hero-bg);
+    color: var(--hero-ink);
+    border-radius: var(--radius-card);
+    padding: 30px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,132,31,0.22), transparent 70%);
+  }
+  .hero-label {
+    font-size: 13px;
+    color: var(--hero-ink-soft);
+    font-weight: 500;
+    margin: 0 0 8px;
+    position: relative;
+  }
+  .hero-figure {
+    font-family: "Noto Serif SC", serif;
+    font-weight: 600;
+    font-size: 44px;
+    line-height: 1.1;
+    color: var(--gold);
+    margin: 0 0 4px;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+    word-break: break-word;
+  }
+  .hero-figure .cents { font-size: 22px; color: var(--hero-ink-soft); }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--hero-ink-soft);
+    margin: 0 0 22px;
+    position: relative;
+  }
+  .hero-divider {
+    height: 1px;
+    background: rgba(244,241,232,0.14);
+    margin: 4px 0 18px;
+    position: relative;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 22px;
+    position: relative;
+    flex-wrap: wrap;
+  }
+  .hero-stat-label {
+    font-size: 12px;
+    color: var(--hero-ink-soft);
+    margin: 0 0 4px;
+  }
+  .hero-stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--hero-ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-stat-value.gold { color: var(--gold); }
+
+  /* ---------- Section headings ---------- */
+  .section {
+    margin-top: 34px;
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  h2 {
+    font-family: "Noto Serif SC", serif;
+    font-weight: 600;
+    font-size: 19px;
+    margin: 0;
+    color: var(--ink);
+  }
+  .section-note {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Table ---------- */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: right;
+    padding: 13px 16px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: normal;
+  }
+  tbody tr { border-bottom: 1px solid var(--line); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { color: var(--ink); }
+  tbody td:first-child { font-weight: 600; }
+  tr.is-target { background: var(--teal-soft); }
+  tr.is-target td:first-child { color: var(--teal); }
+  tr.is-target td:first-child::after {
+    content: "· 已选";
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--teal);
+    margin-left: 6px;
+  }
+
+  /* ---------- Chart ---------- */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
+    padding: 22px 20px 14px;
+  }
+  .chart-card svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart-legend {
+    display: flex;
+    gap: 18px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- Footnote ---------- */
+  .footnote {
+    margin-top: 34px;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+  .footnote strong { color: var(--ink); font-weight: 600; }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 13px;
+    margin-top: 14px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <p class="eyebrow">CPF OA 提取规划 · 参考估算工具</p>
+    <h1>CPF OA 年金模拟器</h1>
+    <p class="lede">输入 55 岁时的 OA 余额，以及希望在多少岁领完，模拟每月大致可领取的金额，以及整个提取期的利息贡献。</p>
+  </header>
+
+  <div class="panel-grid">
+
+    <div class="card">
+
+      <div class="field">
+        <div class="field-label">
+          <span>55 岁时的 OA 金额</span>
+          <span class="unit-hint">新币</span>
+        </div>
+        <div class="amount-input">
+          <span class="prefix">S$</span>
+          <input type="number" id="pv-num" value="500000" min="0" step="1000" inputmode="decimal">
+        </div>
+        <input type="range" id="pv-range" min="0" max="1000000" step="1000" value="500000">
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <span>计划领取至年龄</span>
+          <span class="unit-hint" id="age-hint">75 岁</span>
+        </div>
+        <input type="range" id="age-range" min="56" max="95" step="1" value="75">
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <span>假设年利率</span>
+        </div>
+        <div class="rate-row">
+          <div class="amount-input">
+            <input type="number" id="rate-num" value="2.5" min="0" max="6" step="0.05" inputmode="decimal">
+            <span class="suffix">% p.a.</span>
+          </div>
+          <input type="range" id="rate-range" min="0" max="6" step="0.05" value="2.5" style="margin-top:0;">
+        </div>
+        <p class="rate-note">CPF 官方公布的 OA 利率目前为 2.5% p.a.，并按季度检视调整，因此可自行修改这里的假设做敏感度测试。</p>
+      </div>
+
+      <p class="error-msg" id="error-msg">请将目标年龄设为大于 55 岁，金额设为不小于 0。</p>
+    </div>
+
+    <div class="hero">
+      <p class="hero-label">预计每月可领取</p>
+      <p class="hero-figure" id="hero-pmt">S$ 2,650</p>
+      <p class="hero-sub" id="hero-sub">55 岁 → 75 岁，共 240 个月</p>
+      <div class="hero-divider"></div>
+      <div class="hero-stats">
+        <div>
+          <p class="hero-stat-label">预计领取总额</p>
+          <p class="hero-stat-value" id="hero-total">约 S$636,000</p>
+        </div>
+        <div>
+          <p class="hero-stat-label">其中利息贡献</p>
+          <p class="hero-stat-value gold" id="hero-interest">约 S$136,000</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>不同领取年龄对照</h2>
+      <span class="section-note">以同一笔本金与利率计算</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>领取至年龄</th>
+            <th>领取年数</th>
+            <th>每月可领取</th>
+            <th>利息贡献</th>
+          </tr>
+        </thead>
+        <tbody id="age-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h2>OA 余额变化曲线</h2>
+      <span class="section-note">55 岁至目标年龄，逐年年末余额</span>
+    </div>
+    <div class="chart-card">
+      <svg id="balance-chart" viewBox="0 0 640 280" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="chart-legend">
+        <span><i class="dot" style="background:var(--teal)"></i>账户余额</span>
+        <span><i class="dot" style="background:var(--gold)"></i>目标年龄清零点</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    <strong>关于这个模拟器：</strong>计算采用普通年金公式（月复利、月末领取），月利率 = 年利率 ÷ 12，这与本工具给出的示例数字（50 万本金、20 年领完、2.5% 年利率 → 约每月 2,650 元）一致。实际 CPF OA 利息是按月计息、每年底一次性结算入账，与本工具的月复利假设会有细微差异；本工具也未考虑未来利率调整、部分提取、房贷或投资扣除等情况。<strong>所有结果均为简化估算，仅供规划参考，不构成财务建议，也不代表 CPF 官方计算结果。</strong>如需准确数字，请以 CPF 官网或 CPF 委员会提供的信息为准。
+  </p>
+
+</div>
+
+<script>
+(function () {
+  const els = {
+    pvNum: document.getElementById('pv-num'),
+    pvRange: document.getElementById('pv-range'),
+    ageRange: document.getElementById('age-range'),
+    ageHint: document.getElementById('age-hint'),
+    rateNum: document.getElementById('rate-num'),
+    rateRange: document.getElementById('rate-range'),
+    heroPmt: document.getElementById('hero-pmt'),
+    heroSub: document.getElementById('hero-sub'),
+    heroTotal: document.getElementById('hero-total'),
+    heroInterest: document.getElementById('hero-interest'),
+    tableBody: document.getElementById('age-table-body'),
+    chart: document.getElementById('balance-chart'),
+    errorMsg: document.getElementById('error-msg'),
+  };
+
+  const fmt0 = (n) => 'S$' + Math.round(n).toLocaleString('en-SG');
+  const fmtApprox = (n) => '约 ' + fmt0(n);
+
+  function calcAnnuity(pv, targetAge, annualRatePct) {
+    const months = Math.round((targetAge - 55) * 12);
+    if (months <= 0 || pv < 0) return null;
+    const r = (annualRatePct / 100) / 12;
+    let pmt;
+    if (Math.abs(r) < 1e-9) {
+      pmt = pv / months;
+    } else {
+      pmt = pv * r / (1 - Math.pow(1 + r, -months));
+    }
+    const total = pmt * months;
+    const interest = total - pv;
+    return { months, pmt, total, interest, r };
+  }
+
+  // Year-end balances for the chart: age55 -> targetAge
+  function balancePath(pv, targetAge, annualRatePct, pmt, r) {
+    const years = Math.round(targetAge - 55);
+    const points = [{ age: 55, balance: pv }];
+    let balance = pv;
+    for (let y = 1; y <= years; y++) {
+      for (let m = 0; m < 12; m++) {
+        balance = balance * (1 + r) - pmt;
+      }
+      if (y === years) balance = 0;
+      points.push({ age: 55 + y, balance: Math.max(balance, 0) });
+    }
+    return points;
+  }
+
+  function drawChart(points, targetAge) {
+    const W = 640, H = 280;
+    const padL = 54, padR = 16, padT = 18, padB = 34;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const maxBal = Math.max(...points.map(p => p.balance), 1);
+    const minAge = points[0].age, maxAge = points[points.length - 1].age;
+
+    const x = (age) => padL + ((age - minAge) / (maxAge - minAge || 1)) * innerW;
+    const y = (bal) => padT + innerH - (bal / maxBal) * innerH;
+
+    // grid lines (4 horizontal)
+    let gridSvg = '';
+    const gridSteps = 4;
+    for (let i = 0; i <= gridSteps; i++) {
+      const val = (maxBal / gridSteps) * i;
+      const yy = y(val);
+      gridSvg += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="var(--line)" stroke-width="1" />`;
+      gridSvg += `<text x="${padL - 8}" y="${yy + 4}" text-anchor="end" font-size="10" fill="var(--ink-soft)" font-family="Noto Sans SC, sans-serif">${Math.round(val / 1000)}k</text>`;
+    }
+
+    // x labels: every point, but thin out if too many
+    const labelEvery = points.length > 14 ? Math.ceil(points.length / 8) : 1;
+    let xLabels = '';
+    points.forEach((p, i) => {
+      if (i % labelEvery === 0 || i === points.length - 1) {
+        xLabels += `<text x="${x(p.age)}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="var(--ink-soft)" font-family="Noto Sans SC, sans-serif">${p.age}</text>`;
+      }
+    });
+
+    // line + area path
+    let d = '';
+    points.forEach((p, i) => {
+      d += (i === 0 ? 'M' : 'L') + x(p.age).toFixed(1) + ',' + y(p.balance).toFixed(1) + ' ';
+    });
+    let areaD = d + `L${x(points[points.length - 1].age).toFixed(1)},${padT + innerH} L${x(points[0].age).toFixed(1)},${padT + innerH} Z`;
+
+    const lastPoint = points[points.length - 1];
+
+    const svg = `
+      <defs>
+        <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--teal)" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="var(--teal)" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      ${gridSvg}
+      <path d="${areaD}" fill="url(#areaFill)" stroke="none" />
+      <path d="${d.trim()}" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+      <circle cx="${x(points[0].age)}" cy="${y(points[0].balance)}" r="4" fill="var(--teal)" />
+      <circle cx="${x(lastPoint.age)}" cy="${y(lastPoint.balance)}" r="5" fill="var(--gold)" stroke="var(--surface)" stroke-width="2" />
+      <line x1="${padL}" y1="${padT + innerH}" x2="${W - padR}" y2="${padT + innerH}" stroke="var(--line-strong)" stroke-width="1" />
+      ${xLabels}
+    `;
+    els.chart.innerHTML = svg;
+  }
+
+  const TABLE_AGES = [60, 65, 70, 75, 80, 85, 90];
+
+  function render() {
+    const pv = parseFloat(els.pvNum.value) || 0;
+    const targetAge = parseFloat(els.ageRange.value);
+    const ratePct = parseFloat(els.rateNum.value);
+
+    els.ageHint.textContent = targetAge + ' 岁';
+
+    const result = calcAnnuity(pv, targetAge, ratePct);
+
+    if (!result) {
+      els.errorMsg.classList.add('show');
+      return;
+    }
+    els.errorMsg.classList.remove('show');
+
+    els.heroPmt.textContent = fmt0(result.pmt);
+    els.heroSub.textContent = `55 岁 → ${targetAge} 岁，共 ${result.months} 个月`;
+    els.heroTotal.textContent = fmtApprox(result.total);
+    els.heroInterest.textContent = fmtApprox(result.interest);
+
+    // comparison table
+    let rows = '';
+    TABLE_AGES.forEach((age) => {
+      const r = calcAnnuity(pv, age, ratePct);
+      const isTarget = age === Math.round(targetAge);
+      if (!r) return;
+      rows += `<tr class="${isTarget ? 'is-target' : ''}">
+        <td>${age} 岁</td>
+        <td>${age - 55} 年</td>
+        <td>${fmt0(r.pmt)}</td>
+        <td>${fmt0(r.interest)}</td>
+      </tr>`;
+    });
+    els.tableBody.innerHTML = rows;
+
+    // chart
+    const points = balancePath(pv, targetAge, ratePct, result.pmt, result.r);
+    drawChart(points, targetAge);
+  }
+
+  function syncPair(numEl, rangeEl, onChange) {
+    numEl.addEventListener('input', () => {
+      rangeEl.value = numEl.value;
+      onChange();
+    });
+    rangeEl.addEventListener('input', () => {
+      numEl.value = rangeEl.value;
+      onChange();
+    });
+  }
+
+  syncPair(els.pvNum, els.pvRange, render);
+  syncPair(els.rateNum, els.rateRange, render);
+  els.ageRange.addEventListener('input', render);
+
+  render();
+})();
+</script>
+</body>
+</html>
